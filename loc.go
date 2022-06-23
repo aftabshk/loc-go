@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 )
 
 func calculateLines(data string) (lines int) {
@@ -15,11 +16,12 @@ func prettyPrint(fileName string, numberOfLines int) {
 	fmt.Printf("%v	%v\n", fileName, numberOfLines)
 }
 
-func calculateLinesOfAllFilesInDir(dirPath string) {
+func calculateLinesOfAllFilesInDir(dirPath string, wg *sync.WaitGroup) {
 	dir, _ := os.ReadDir(dirPath)
 	for _, value := range dir {
 		if value.IsDir() {
-			calculateLinesOfAllFilesInDir(prefixPath(dirPath, value.Name()))
+			wg.Add(1)
+			go calculateLinesOfAllFilesInDir(prefixPath(dirPath, value.Name()), wg)
 		}
 		if !value.IsDir() {
 			fileName := prefixPath(dirPath, value.Name())
@@ -28,6 +30,7 @@ func calculateLinesOfAllFilesInDir(dirPath string) {
 			prettyPrint(fileName, numberOfLines)
 		}
 	}
+	wg.Done()
 }
 
 func prefixPath(dirPath, name string) string {
@@ -35,5 +38,8 @@ func prefixPath(dirPath, name string) string {
 }
 
 func main() {
-	calculateLinesOfAllFilesInDir(".")
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go calculateLinesOfAllFilesInDir(".", &wg)
+	wg.Wait()
 }
