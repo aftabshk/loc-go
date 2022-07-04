@@ -16,15 +16,20 @@ func prettyPrint(fileName string, numberOfLines int) {
 	fmt.Printf("%v	%v\n", fileName, numberOfLines)
 }
 
-func calculateLinesOfAllFilesInDir(dirPath string, wg *sync.WaitGroup) {
+func calculateLinesOfAllFilesInDir(
+	dirPath string,
+	directoriesOrFilesToIgnore []string,
+	wg *sync.WaitGroup,
+) {
 	dir, _ := os.ReadDir(dirPath)
 	for _, value := range dir {
-		if value.IsDir() {
+		fileOrDirectoryName := prefixPath(dirPath, value.Name())
+		if !contains(directoriesOrFilesToIgnore, fileOrDirectoryName) && value.IsDir() {
 			wg.Add(1)
-			go calculateLinesOfAllFilesInDir(prefixPath(dirPath, value.Name()), wg)
+			go calculateLinesOfAllFilesInDir(fileOrDirectoryName, directoriesOrFilesToIgnore, wg)
 		}
-		if !value.IsDir() {
-			fileName := prefixPath(dirPath, value.Name())
+		if !contains(directoriesOrFilesToIgnore, fileOrDirectoryName) && !value.IsDir() {
+			fileName := fileOrDirectoryName
 			file, _ := os.ReadFile(fileName)
 			numberOfLines := calculateLines(string(file))
 			prettyPrint(fileName, numberOfLines)
@@ -37,9 +42,22 @@ func prefixPath(dirPath, name string) string {
 	return dirPath + "/" + name
 }
 
+func readLocIgnore() (directoriesOrFilesToIgnore []string) {
+	locIgnore, _ := os.ReadFile("/Users/aftabshk/.locignore")
+	directoriesOrFilesToIgnore = strings.Split(string(locIgnore), "\n")
+	return
+}
+
+func contains(arr []string, s string) (isFound bool) {
+	for i := 0; i < len(arr) && !isFound; i++ {
+		isFound = arr[i] == s
+	}
+	return
+}
+
 func main() {
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go calculateLinesOfAllFilesInDir(".", &wg)
+	go calculateLinesOfAllFilesInDir(".", readLocIgnore(), &wg)
 	wg.Wait()
 }
