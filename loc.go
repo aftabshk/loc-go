@@ -24,11 +24,11 @@ func calculateLinesOfAllFilesInDir(
 	dir, _ := os.ReadDir(dirPath)
 	for _, value := range dir {
 		fileOrDirectoryName := prefixPath(dirPath, value.Name())
-		if !contains(directoriesOrFilesToIgnore, fileOrDirectoryName) && value.IsDir() {
+		if shouldIgnore(directoriesOrFilesToIgnore, value.Name()) && value.IsDir() {
 			wg.Add(1)
 			go calculateLinesOfAllFilesInDir(fileOrDirectoryName, directoriesOrFilesToIgnore, wg)
 		}
-		if !contains(directoriesOrFilesToIgnore, fileOrDirectoryName) && !value.IsDir() {
+		if shouldIgnore(directoriesOrFilesToIgnore, value.Name()) && !value.IsDir() {
 			fileName := fileOrDirectoryName
 			file, _ := os.ReadFile(fileName)
 			numberOfLines := calculateLines(string(file))
@@ -36,6 +36,10 @@ func calculateLinesOfAllFilesInDir(
 		}
 	}
 	wg.Done()
+}
+
+func shouldIgnore(directoriesOrFilesToIgnore []string, dirOrFileName string) bool {
+	return !contains(directoriesOrFilesToIgnore, dirOrFileName)
 }
 
 func prefixPath(dirPath, name string) string {
