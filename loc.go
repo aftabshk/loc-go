@@ -35,7 +35,8 @@ func calculateLinesOfAllFilesInDir(
 }
 
 func readLocIgnore() (directoriesOrFilesToIgnore []string) {
-	locIgnore, _ := os.ReadFile("/Users/aftabshk/.locignore")
+	locIgnoreFilePath := os.Getenv("HOME") + "/.locignore"
+	locIgnore, _ := os.ReadFile(locIgnoreFilePath)
 	directoriesOrFilesToIgnore = strings.Split(string(locIgnore), "\n")
 	return
 }
