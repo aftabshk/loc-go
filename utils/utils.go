@@ -28,7 +28,7 @@ func SortDescending(files []domain.FileMetadata) []domain.FileMetadata {
 	result := make([]domain.FileMetadata, len(files))
 	copy(result, files)
 	sort.Slice(result, func(i, j int) bool {
-		return files[i].NumberOfLines > files[j].NumberOfLines
+		return result[i].NumberOfLines > result[j].NumberOfLines
 	})
 	return result
 }
