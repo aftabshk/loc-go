@@ -1,9 +1,18 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+	"loc-go/domain"
+)
 
 func PrettyPrint(fileName string, numberOfLines int) {
 	fmt.Printf("%v	%v\n", fileName, numberOfLines)
+}
+
+func PrettyPrintAll(allFiles []domain.FileMetadata) {
+	for _, fileMetadata := range allFiles {
+		PrettyPrint(fileMetadata.FileName, fileMetadata.NumberOfLines)
+	}
 }
 
 func ShouldIgnore(directoriesOrFilesToIgnore []string, dirOrFileName string) bool {
