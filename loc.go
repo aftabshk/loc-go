@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -54,10 +53,15 @@ func readLocIgnore() (directoriesOrFilesToIgnore []string) {
 	return
 }
 
-func prettyPrint(allFiles chan domain.FileMetadata) {
-	for fileMetadata := range allFiles {
-		fmt.Println(fileMetadata)
+func collectFileMetadataAndPrint(metadataOfAllFilesChan chan domain.FileMetadata, wg *sync.WaitGroup) {
+	var metadataOfAllFiles []domain.FileMetadata
+	for fileMetadata := range metadataOfAllFilesChan {
+		metadataOfAllFiles = append(metadataOfAllFiles, fileMetadata)
 	}
+
+	sortedFiles := utils.SortDescending(metadataOfAllFiles)
+	utils.PrettyPrintAll(sortedFiles)
+	wg.Done()
 }
 
 func main() {
@@ -66,6 +70,7 @@ func main() {
 	wg.Add(1)
 	wgCount := 1
 	go calculateLinesOfAllFilesInDir(".", readLocIgnore(), allFiles, &wg, &wgCount)
-	go prettyPrint(allFiles)
+	wg.Add(1)
+	go collectFileMetadataAndPrint(allFiles, &wg)
 	wg.Wait()
 }

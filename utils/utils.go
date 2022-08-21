@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"loc-go/domain"
+	"sort"
 )
 
 func PrettyPrint(fileName string, numberOfLines int) {
@@ -21,4 +22,13 @@ func ShouldIgnore(directoriesOrFilesToIgnore []string, dirOrFileName string) boo
 
 func PrefixPath(dirPath, name string) string {
 	return dirPath + "/" + name
+}
+
+func SortDescending(files []domain.FileMetadata) []domain.FileMetadata {
+	result := make([]domain.FileMetadata, len(files))
+	copy(result, files)
+	sort.Slice(result, func(i, j int) bool {
+		return files[i].NumberOfLines > files[j].NumberOfLines
+	})
+	return result
 }
