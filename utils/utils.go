@@ -1,19 +1,23 @@
 package utils
 
 import (
-	"fmt"
+	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 	"loc-go/domain"
+	"os"
 	"sort"
 )
 
-func PrettyPrint(fileName string, numberOfLines int) {
-	fmt.Printf("%v	%v\n", fileName, numberOfLines)
-}
-
 func PrettyPrintAll(allFiles []domain.FileMetadata) {
+	t := table.NewWriter()
+	t.SetStyle(table.StyleColoredBlackOnCyanWhite)
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"File Name", "LOC"})
 	for _, fileMetadata := range allFiles {
-		PrettyPrint(fileMetadata.FileName, fileMetadata.NumberOfLines)
+		t.AppendRow([]interface{}{text.WrapHard(fileMetadata.FileName, 100), fileMetadata.NumberOfLines})
+		t.AppendSeparator()
 	}
+	t.Render()
 }
 
 func ShouldIgnore(directoriesOrFilesToIgnore []string, dirOrFileName string) bool {
