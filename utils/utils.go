@@ -21,7 +21,7 @@ func PrettyPrintAll(allFiles []domain.FileMetadata) {
 }
 
 func ShouldIgnore(directoriesOrFilesToIgnore []string, dirOrFileName string) bool {
-	return !contains(directoriesOrFilesToIgnore, dirOrFileName)
+	return contains(directoriesOrFilesToIgnore, dirOrFileName)
 }
 
 func PrefixPath(dirPath, name string) string {

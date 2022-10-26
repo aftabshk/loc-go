@@ -23,12 +23,12 @@ func calculateLinesOfAllFilesInDir(
 	dir, _ := os.ReadDir(dirPath)
 	for _, value := range dir {
 		fileOrDirectoryName := utils.PrefixPath(dirPath, value.Name())
-		if utils.ShouldIgnore(directoriesOrFilesToIgnore, value.Name()) && value.IsDir() {
+		if !utils.ShouldIgnore(directoriesOrFilesToIgnore, value.Name()) && value.IsDir() {
 			wg.Add(1)
 			*wgCount = *wgCount + 1
 			go calculateLinesOfAllFilesInDir(fileOrDirectoryName, directoriesOrFilesToIgnore, allFiles, wg, wgCount)
 		}
-		if utils.ShouldIgnore(directoriesOrFilesToIgnore, value.Name()) && !value.IsDir() {
+		if !utils.ShouldIgnore(directoriesOrFilesToIgnore, value.Name()) && !value.IsDir() {
 			fileName := fileOrDirectoryName
 			file, _ := os.ReadFile(fileName)
 			numberOfLines := calculateLines(string(file))
