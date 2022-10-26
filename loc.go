@@ -18,15 +18,15 @@ func calculateLinesOfAllFilesInDir(
 	directoriesOrFilesToIgnore []string,
 	allFiles chan domain.FileMetadata,
 	wg *sync.WaitGroup,
-	wgCount *int,
+	safeCounter *domain.SafeCounter,
 ) {
 	dir, _ := os.ReadDir(dirPath)
 	for _, value := range dir {
 		fileOrDirectoryName := utils.PrefixPath(dirPath, value.Name())
 		if !utils.ShouldIgnore(directoriesOrFilesToIgnore, value.Name()) && value.IsDir() {
 			wg.Add(1)
-			*wgCount = *wgCount + 1
-			go calculateLinesOfAllFilesInDir(fileOrDirectoryName, directoriesOrFilesToIgnore, allFiles, wg, wgCount)
+			safeCounter.Inc()
+			go calculateLinesOfAllFilesInDir(fileOrDirectoryName, directoriesOrFilesToIgnore, allFiles, wg, safeCounter)
 		}
 		if !utils.ShouldIgnore(directoriesOrFilesToIgnore, value.Name()) && !value.IsDir() {
 			fileName := fileOrDirectoryName
@@ -40,8 +40,8 @@ func calculateLinesOfAllFilesInDir(
 		}
 	}
 	wg.Done()
-	*wgCount = *wgCount - 1
-	if *wgCount == 0 {
+	safeCounter.Dec()
+	if safeCounter.Count() == 0 {
 		close(allFiles)
 	}
 }
@@ -68,8 +68,9 @@ func main() {
 	allFiles := make(chan domain.FileMetadata)
 	var wg sync.WaitGroup
 	wg.Add(1)
-	wgCount := 1
-	go calculateLinesOfAllFilesInDir(".", readLocIgnore(), allFiles, &wg, &wgCount)
+	safeCounter := domain.SafeCounter{}
+	safeCounter.Inc()
+	go calculateLinesOfAllFilesInDir(".", readLocIgnore(), allFiles, &wg, &safeCounter)
 	wg.Add(1)
 	go collectFileMetadataAndPrint(allFiles, &wg)
 	wg.Wait()
