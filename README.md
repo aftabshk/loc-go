@@ -1,6 +1,6 @@
 # LOC
 
-LOC - Line of Code is a tool which displays number of lines in each file in your project. It displays files in descending order of number of lines in files.
+LOC - Line of Code is a tool which displays number of lines in each file in your project. It displays files in descending order of number of lines.
 
 ![example](https://github.com/affishaikh/loc-go/blob/main/images/example.png?raw=true)
 
