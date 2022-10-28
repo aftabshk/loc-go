@@ -6,7 +6,7 @@ LOC - Line of Code is a tool which displays number of lines in each file in your
 
 ### .locignore
 
-If you want to ignore certain directories or files from project like .git or .idea, then put a list inside $HOME/.locignore file
+If you want to ignore certain directories or files from project like .git or .idea, then put a list inside **$HOME/.locignore** file
 
 ```text
 .idea
