@@ -1,12 +1,13 @@
 package main
 
 import (
+	"loc-go/src"
+	"loc-go/src/domain"
+	"loc-go/src/utils"
 	"os"
 	"strings"
 	"sync"
 )
-import "loc-go/utils"
-import "loc-go/domain"
 
 func calculateLines(data string) (lines int) {
 	lines = strings.Count(data, "\n") + 1
@@ -15,7 +16,7 @@ func calculateLines(data string) (lines int) {
 
 func calculateLinesOfAllFilesInDir(
 	dirPath string,
-	directoriesOrFilesToIgnore []string,
+	options src.Options,
 	allFiles chan domain.FileMetadata,
 	wg *sync.WaitGroup,
 	safeCounter *domain.SafeCounter,
@@ -23,12 +24,12 @@ func calculateLinesOfAllFilesInDir(
 	dir, _ := os.ReadDir(dirPath)
 	for _, value := range dir {
 		fileOrDirectoryName := utils.PrefixPath(dirPath, value.Name())
-		if !utils.ShouldIgnore(directoriesOrFilesToIgnore, value.Name()) && value.IsDir() {
+		if !utils.ShouldIgnore(options.Ignore, value.Name()) && value.IsDir() {
 			wg.Add(1)
 			safeCounter.Inc()
-			go calculateLinesOfAllFilesInDir(fileOrDirectoryName, directoriesOrFilesToIgnore, allFiles, wg, safeCounter)
+			go calculateLinesOfAllFilesInDir(fileOrDirectoryName, options, allFiles, wg, safeCounter)
 		}
-		if !utils.ShouldIgnore(directoriesOrFilesToIgnore, value.Name()) && !value.IsDir() {
+		if !utils.ShouldIgnore(options.Ignore, value.Name()) && !value.IsDir() {
 			fileName := fileOrDirectoryName
 			file, _ := os.ReadFile(fileName)
 			numberOfLines := calculateLines(string(file))
@@ -70,7 +71,8 @@ func main() {
 	wg.Add(1)
 	safeCounter := domain.SafeCounter{}
 	safeCounter.Inc()
-	go calculateLinesOfAllFilesInDir(".", readLocIgnore(), allFiles, &wg, &safeCounter)
+	options := src.Resolve(os.Args[1:])
+	go calculateLinesOfAllFilesInDir(".", options, allFiles, &wg, &safeCounter)
 	wg.Add(1)
 	go collectFileMetadataAndPrint(allFiles, &wg)
 	wg.Wait()
