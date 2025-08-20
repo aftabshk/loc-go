@@ -2,6 +2,11 @@ package domain
 
 import "sync"
 
+/*
+SafeCounter is used to figure out when to close the channel on which the loc metadata is added.
+We are using range on that channel, so we have to close it otherwise the range will keep on reading from
+channel.
+*/
 type SafeCounter struct {
 	lock  sync.Mutex
 	count int

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 	"loc-go/src/domain"
@@ -35,4 +36,8 @@ func SortDescending(files []domain.FileMetadata) []domain.FileMetadata {
 		return result[i].NumberOfLines > result[j].NumberOfLines
 	})
 	return result
+}
+
+func PrintMetadata(fileMetadata []domain.FileMetadata) {
+	fmt.Printf("\nTotal number of files: %d\n\n", len(fileMetadata))
 }

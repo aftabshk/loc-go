@@ -9,9 +9,17 @@ import (
 	"sync"
 )
 
-func calculateLines(data string) (lines int) {
-	lines = strings.Count(data, "\n") + 1
-	return
+func calculateLOCForFile(fileName string) domain.FileMetadata {
+	file, _ := os.ReadFile(fileName)
+	numberOfLines := calculateLines(string(file))
+	return domain.FileMetadata{
+		FileName:      fileName,
+		NumberOfLines: numberOfLines,
+	}
+}
+
+func calculateLines(data string) int {
+	return strings.Count(data, "\n") + 1
 }
 
 func calculateLinesOfAllFilesInDir(
@@ -21,6 +29,7 @@ func calculateLinesOfAllFilesInDir(
 	wg *sync.WaitGroup,
 	safeCounter *domain.SafeCounter,
 ) {
+	defer wg.Done()
 	dir, _ := os.ReadDir(dirPath)
 	for _, value := range dir {
 		fileOrDirectoryName := utils.PrefixPath(dirPath, value.Name())
@@ -30,17 +39,9 @@ func calculateLinesOfAllFilesInDir(
 			go calculateLinesOfAllFilesInDir(fileOrDirectoryName, options, allFiles, wg, safeCounter)
 		}
 		if !utils.ShouldIgnore(options.Ignore, value.Name()) && !value.IsDir() {
-			fileName := fileOrDirectoryName
-			file, _ := os.ReadFile(fileName)
-			numberOfLines := calculateLines(string(file))
-			fileMetadata := domain.FileMetadata{
-				FileName:      fileName,
-				NumberOfLines: numberOfLines,
-			}
-			allFiles <- fileMetadata
+			allFiles <- calculateLOCForFile(fileOrDirectoryName)
 		}
 	}
-	wg.Done()
 	safeCounter.Dec()
 	if safeCounter.Count() == 0 {
 		close(allFiles)
@@ -60,6 +61,7 @@ func collectFileMetadataAndPrint(metadataOfAllFilesChan chan domain.FileMetadata
 		metadataOfAllFiles = append(metadataOfAllFiles, fileMetadata)
 	}
 
+	utils.PrintMetadata(metadataOfAllFiles)
 	sortedFiles := utils.SortDescending(metadataOfAllFiles)
 	utils.PrettyPrintAll(sortedFiles)
 	wg.Done()

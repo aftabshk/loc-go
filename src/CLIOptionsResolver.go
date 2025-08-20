@@ -1,7 +1,6 @@
 package src
 
 import (
-	"fmt"
 	"os"
 	"strings"
 )
@@ -44,7 +43,6 @@ func Resolve(cliArgs []string) Options {
 
 	for _, arg := range cliArgs {
 		option := strings.Split(arg, "=")
-		fmt.Println(option)
 		allResolvers[option[0]].resolve(option[1], options)
 	}
 
