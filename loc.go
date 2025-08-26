@@ -1,10 +1,12 @@
 package main
 
 import (
-	"loc-go/src"
-	"loc-go/src/domain"
-	"loc-go/src/utils"
+	"fmt"
+	"loc-go/domain"
+	"loc-go/option-resolvers"
+	"loc-go/utils"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 )
@@ -24,7 +26,7 @@ func calculateLines(data string) int {
 
 func calculateLinesOfAllFilesInDir(
 	dirPath string,
-	options src.Options,
+	options domain.Options,
 	allFiles chan domain.FileMetadata,
 	wg *sync.WaitGroup,
 	safeCounter *domain.SafeCounter,
@@ -48,21 +50,40 @@ func calculateLinesOfAllFilesInDir(
 	}
 }
 
-func readLocIgnore() (directoriesOrFilesToIgnore []string) {
-	locIgnoreFilePath := os.Getenv("HOME") + "/.locignore"
-	locIgnore, _ := os.ReadFile(locIgnoreFilePath)
-	directoriesOrFilesToIgnore = strings.Split(string(locIgnore), "\n")
-	return
+func sorted(files []domain.FileMetadata, options domain.Options) []domain.FileMetadata {
+	if options.Sort.Key == "" || options.Sort.Direction == "" {
+		return utils.SortDescending(files)
+	}
+	if options.Sort.Key == "name" {
+		if options.Sort.Direction == "ASC" {
+			sort.Slice(files, func(i, j int) bool {
+				return utils.Compare(files[i].FileName, files[j].FileName)
+			})
+		} else if options.Sort.Direction == "DESC" {
+			sort.Slice(files, func(i, j int) bool {
+				return !utils.Compare(files[i].FileName, files[j].FileName)
+			})
+		}
+	}
+	if options.Sort.Key == "loc" {
+		if options.Sort.Direction == "ASC" {
+			return utils.SortAscending(files)
+		} else if options.Sort.Direction == "DESC" {
+			return utils.SortDescending(files)
+		}
+	}
+
+	return files
 }
 
-func collectFileMetadataAndPrint(metadataOfAllFilesChan chan domain.FileMetadata, wg *sync.WaitGroup) {
+func collectFileMetadataAndPrint(metadataOfAllFilesChan chan domain.FileMetadata, options domain.Options, wg *sync.WaitGroup) {
 	var metadataOfAllFiles []domain.FileMetadata
 	for fileMetadata := range metadataOfAllFilesChan {
 		metadataOfAllFiles = append(metadataOfAllFiles, fileMetadata)
 	}
 
 	utils.PrintMetadata(metadataOfAllFiles)
-	sortedFiles := utils.SortDescending(metadataOfAllFiles)
+	sortedFiles := sorted(metadataOfAllFiles, options)
 	utils.PrettyPrintAll(sortedFiles)
 	wg.Done()
 }
@@ -73,9 +94,10 @@ func main() {
 	wg.Add(1)
 	safeCounter := domain.SafeCounter{}
 	safeCounter.Inc()
-	options := src.Resolve(os.Args[1:])
+	options := option_resolvers.Resolve(os.Args[1:])
+	fmt.Println(options)
 	go calculateLinesOfAllFilesInDir(".", options, allFiles, &wg, &safeCounter)
 	wg.Add(1)
-	go collectFileMetadataAndPrint(allFiles, &wg)
+	go collectFileMetadataAndPrint(allFiles, options, &wg)
 	wg.Wait()
 }

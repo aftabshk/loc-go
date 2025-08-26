@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func main() {
+func readPartialFile() {
 	file, err := os.Open("./normalFile.txt")
 	if err != nil {
 		log.Fatal(err)
