@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"loc-go/domain"
 	"loc-go/option-resolvers"
 	"loc-go/utils"
@@ -95,7 +94,6 @@ func main() {
 	safeCounter := domain.SafeCounter{}
 	safeCounter.Inc()
 	options := option_resolvers.Resolve(os.Args[1:])
-	fmt.Println(options)
 	go calculateLinesOfAllFilesInDir(".", options, allFiles, &wg, &safeCounter)
 	wg.Add(1)
 	go collectFileMetadataAndPrint(allFiles, options, &wg)
