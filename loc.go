@@ -54,11 +54,12 @@ func sorted(files []domain.FileMetadata, options domain.Options) []domain.FileMe
 		return utils.SortDescending(files)
 	}
 	if options.Sort.Key == "name" {
-		if options.Sort.Direction == "ASC" {
+		switch options.Sort.Direction {
+case "ASC":
 			sort.Slice(files, func(i, j int) bool {
 				return utils.Compare(files[i].FileName, files[j].FileName)
 			})
-		} else if options.Sort.Direction == "DESC" {
+		case "DESC":
 			sort.Slice(files, func(i, j int) bool {
 				return !utils.Compare(files[i].FileName, files[j].FileName)
 			})
@@ -94,7 +95,7 @@ func main() {
 	safeCounter := domain.SafeCounter{}
 	safeCounter.Inc()
 	options := option_resolvers.Resolve(os.Args[1:])
-	go calculateLinesOfAllFilesInDir(".", options, allFiles, &wg, &safeCounter)
+	go calculateLinesOfAllFilesInDir(options.Path, options, allFiles, &wg, &safeCounter)
 	wg.Add(1)
 	go collectFileMetadataAndPrint(allFiles, options, &wg)
 	wg.Wait()

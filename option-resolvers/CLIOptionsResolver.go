@@ -24,6 +24,7 @@ var allResolvers = map[string]OptionResolver{
 
 func Resolve(cliArgs []string) domain.Options {
 	options := &domain.Options{}
+	options.Path = "."
 
 	for i := 0; i < len(cliArgs); {
 		if cliArgs[i] == "-ignore" {
@@ -32,6 +33,9 @@ func Resolve(cliArgs []string) domain.Options {
 		} else if cliArgs[i] == "-sort" {
 			SortOptionResolver{}.resolve(cliArgs[i+1:i+3], options)
 			i = i + 3
+		} else if i == (len(cliArgs) - 1) {
+			options.Path = cliArgs[i]
+			i = i + 1
 		}
 	}
 

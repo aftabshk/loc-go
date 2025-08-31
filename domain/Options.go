@@ -8,6 +8,7 @@ type Sort struct {
 type Options struct {
 	Ignore []string
 	Sort
+	Path string
 }
 
 func (o *Options) appendToIgnore(ignorePaths []string) *Options {
