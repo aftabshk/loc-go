@@ -17,14 +17,9 @@ func readLocIgnore() (directoriesOrFilesToIgnore []string) {
 	return
 }
 
-var allResolvers = map[string]OptionResolver{
-	"-ignore": IgnoreOptionResolver{},
-	"-sort":   SortOptionResolver{},
-}
-
 func Resolve(cliArgs []string) domain.Options {
 	options := &domain.Options{}
-	options.Path = "."
+	path := "."
 
 	for i := 0; i < len(cliArgs); {
 		if cliArgs[i] == "-ignore" {
@@ -34,10 +29,11 @@ func Resolve(cliArgs []string) domain.Options {
 			SortOptionResolver{}.resolve(cliArgs[i+1:i+3], options)
 			i = i + 3
 		} else if i == (len(cliArgs) - 1) {
-			options.Path = cliArgs[i]
+			path = cliArgs[i]
 			i = i + 1
 		}
 	}
+	PathOptionResolver{}.resolve([]string{path}, options)
 
 	return *options
 }

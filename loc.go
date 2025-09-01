@@ -34,12 +34,13 @@ func calculateLinesOfAllFilesInDir(
 	dir, _ := os.ReadDir(dirPath)
 	for _, value := range dir {
 		fileOrDirectoryName := utils.PrefixPath(dirPath, value.Name())
-		if !utils.ShouldIgnore(options.Ignore, value.Name()) && value.IsDir() {
+
+		if !utils.ShouldIgnore(options.Ignore, fileOrDirectoryName) && value.IsDir() {
 			wg.Add(1)
 			safeCounter.Inc()
 			go calculateLinesOfAllFilesInDir(fileOrDirectoryName, options, allFiles, wg, safeCounter)
 		}
-		if !utils.ShouldIgnore(options.Ignore, value.Name()) && !value.IsDir() {
+		if !utils.ShouldIgnore(options.Ignore, fileOrDirectoryName) && !value.IsDir() {
 			allFiles <- calculateLOCForFile(fileOrDirectoryName)
 		}
 	}
@@ -55,21 +56,22 @@ func sorted(files []domain.FileMetadata, options domain.Options) []domain.FileMe
 	}
 	if options.Sort.Key == "name" {
 		switch options.Sort.Direction {
-case "ASC":
-			sort.Slice(files, func(i, j int) bool {
-				return utils.Compare(files[i].FileName, files[j].FileName)
-			})
-		case "DESC":
-			sort.Slice(files, func(i, j int) bool {
-				return !utils.Compare(files[i].FileName, files[j].FileName)
-			})
+			case "ASC": 
+				sort.Slice(files, func(i, j int) bool {
+					return utils.Compare(files[i].FileName, files[j].FileName)
+				})
+			case "DESC": 
+				sort.Slice(files, func(i, j int) bool {
+					return !utils.Compare(files[i].FileName, files[j].FileName)
+				})
 		}
 	}
 	if options.Sort.Key == "loc" {
-		if options.Sort.Direction == "ASC" {
-			return utils.SortAscending(files)
-		} else if options.Sort.Direction == "DESC" {
-			return utils.SortDescending(files)
+		switch options.Sort.Direction {
+			case "ASC":
+				return utils.SortAscending(files)
+			case "DESC":
+				return utils.SortDescending(files)
 		}
 	}
 

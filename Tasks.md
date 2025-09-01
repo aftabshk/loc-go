@@ -7,8 +7,8 @@
 5. Refactoring
 6. Showing loc with + sign, like files with greater than 10k lines will just show 10000+ and don't read lines greater than that
 7. Show the file count - done
-8. Allowing to ignore particular files
+8. Allowing to ignore particular files - done
 
 ### Refactoring
 
-1. Removing package errors
+1. Removing package errors - done
