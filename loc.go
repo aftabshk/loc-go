@@ -1,21 +1,46 @@
 package main
 
 import (
+	"bufio"
 	"loc-go/domain"
-	"loc-go/option-resolvers"
+	option_resolvers "loc-go/option-resolvers"
 	"loc-go/utils"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 )
 
-func calculateLOCForFile(fileName string) domain.FileMetadata {
+func calculatePartialLoc(fileName string, maxLineRead int) domain.FileMetadata {
+	file, _ := os.Open(fileName)
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	// optionally, resize scanner's capacity for lines over 64K, see next example
+
+	i := 0
+	for ; i < maxLineRead && scanner.Scan(); i++ {
+	}
+
+	if scanner.Scan() {
+		return domain.FileMetadata{
+			FileName:      fileName,
+			NumberOfLines: strconv.Itoa(i) + "+",
+		}
+	}
+
+	return domain.FileMetadata{
+		FileName:      fileName,
+		NumberOfLines: strconv.Itoa(i),
+	}
+}
+
+func calculateFullLoc(fileName string) domain.FileMetadata {
 	file, _ := os.ReadFile(fileName)
 	numberOfLines := calculateLines(string(file))
 	return domain.FileMetadata{
 		FileName:      fileName,
-		NumberOfLines: numberOfLines,
+		NumberOfLines: strconv.Itoa(numberOfLines),
 	}
 }
 
@@ -41,7 +66,7 @@ func calculateLinesOfAllFilesInDir(
 			go calculateLinesOfAllFilesInDir(fileOrDirectoryName, options, allFiles, wg, safeCounter)
 		}
 		if !utils.ShouldIgnore(options.Ignore, fileOrDirectoryName) && !value.IsDir() {
-			allFiles <- calculateLOCForFile(fileOrDirectoryName)
+			allFiles <- calculatePartialLoc(fileOrDirectoryName, domain.DEFAULT_MAX_PARTIAL_LOC_COUNT)
 		}
 	}
 	safeCounter.Dec()
@@ -56,22 +81,22 @@ func sorted(files []domain.FileMetadata, options domain.Options) []domain.FileMe
 	}
 	if options.Sort.Key == "name" {
 		switch options.Sort.Direction {
-			case "ASC": 
-				sort.Slice(files, func(i, j int) bool {
-					return utils.Compare(files[i].FileName, files[j].FileName)
-				})
-			case "DESC": 
-				sort.Slice(files, func(i, j int) bool {
-					return !utils.Compare(files[i].FileName, files[j].FileName)
-				})
+		case "ASC":
+			sort.Slice(files, func(i, j int) bool {
+				return utils.Compare(files[i].FileName, files[j].FileName)
+			})
+		case "DESC":
+			sort.Slice(files, func(i, j int) bool {
+				return !utils.Compare(files[i].FileName, files[j].FileName)
+			})
 		}
 	}
 	if options.Sort.Key == "loc" {
 		switch options.Sort.Direction {
-			case "ASC":
-				return utils.SortAscending(files)
-			case "DESC":
-				return utils.SortDescending(files)
+		case "ASC":
+			return utils.SortAscending(files)
+		case "DESC":
+			return utils.SortDescending(files)
 		}
 	}
 

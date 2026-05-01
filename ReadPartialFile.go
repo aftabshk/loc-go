@@ -3,25 +3,36 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
+	"strconv"
+	"time"
 )
 
-func readPartialFile() {
-	file, err := os.Open("./normalFile.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
+func readPartialFileTryout(fileName string, maxLineRead int) string {
+	file, _ := os.Open(fileName)
 	defer file.Close()
-
 	scanner := bufio.NewScanner(file)
 	// optionally, resize scanner's capacity for lines over 64K, see next example
-	for i := 1; scanner.Scan() && i <= 3000; i++ {
+
+	i := 0
+	for ; i < maxLineRead && scanner.Scan(); i++ {
 	}
 
-	fmt.Println("Counted 2000 lines ")
-	//fmt.Println(str)
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+	if scanner.Scan() {
+		return strconv.Itoa(i) + "+"
 	}
+
+	return strconv.Itoa(i)
+}
+
+func main1() {
+	start := time.Now()
+	loc := readPartialFileTryout("./loc-go", 10000)
+	end := time.Now()
+	fmt.Println("Loc: ", loc, " Within: ", end.Sub(start).Seconds(), " secs")
+
+	start = time.Now()
+	actualLoc := calculateFullLoc("./Tasks.md")
+	end = time.Now()
+	fmt.Println("Loc: ", actualLoc, " Within: ", end.Sub(start).Seconds(), " secs")
 }
