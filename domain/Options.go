@@ -9,9 +9,7 @@ type Options struct {
 	Ignore []string
 	Sort
 	Path string
+	Partial bool
+	PartialReadUpto int
 }
 
-func (o *Options) appendToIgnore(ignorePaths []string) *Options {
-	o.Ignore = append(o.Ignore, ignorePaths...)
-	return o
-}

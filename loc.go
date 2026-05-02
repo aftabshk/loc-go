@@ -66,7 +66,11 @@ func calculateLinesOfAllFilesInDir(
 			go calculateLinesOfAllFilesInDir(fileOrDirectoryName, options, allFiles, wg, safeCounter)
 		}
 		if !utils.ShouldIgnore(options.Ignore, fileOrDirectoryName) && !value.IsDir() {
-			allFiles <- calculatePartialLoc(fileOrDirectoryName, domain.DEFAULT_MAX_PARTIAL_LOC_COUNT)
+			if (options.Partial) {
+				allFiles <- calculatePartialLoc(fileOrDirectoryName, options.PartialReadUpto)
+			} else {
+				allFiles <- calculateFullLoc(fileOrDirectoryName)
+			}
 		}
 	}
 	safeCounter.Dec()
@@ -79,8 +83,8 @@ func sorted(files []domain.FileMetadata, options domain.Options) []domain.FileMe
 	if options.Sort.Key == "" || options.Sort.Direction == "" {
 		return utils.SortDescending(files)
 	}
-	if options.Sort.Key == "name" {
-		switch options.Sort.Direction {
+	if strings.ToLower(options.Sort.Key) == "name" {
+		switch strings.ToLower(options.Sort.Direction) {
 		case "ASC":
 			sort.Slice(files, func(i, j int) bool {
 				return utils.Compare(files[i].FileName, files[j].FileName)
@@ -91,7 +95,7 @@ func sorted(files []domain.FileMetadata, options domain.Options) []domain.FileMe
 			})
 		}
 	}
-	if options.Sort.Key == "loc" {
+	if strings.ToLower(options.Sort.Key) == "loc" {
 		switch options.Sort.Direction {
 		case "ASC":
 			return utils.SortAscending(files)

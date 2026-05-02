@@ -8,7 +8,8 @@
 6. Showing loc with + sign, like files with greater than 10k lines will just show 10000+ and don't read lines greater than that - done
     - Partial Loc
     - Full Loc
-7. Take option from outside to do a partial loc and partial count
+7. Take option from outside to do a partial loc and partial count - done
+    -partial -partial-read-upto 10000
 8. Providing multiple paths to calculate loc concurrently
 9. Show correct prompt saying that path not valid
 10. Refactoring
